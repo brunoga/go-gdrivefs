@@ -2,11 +2,14 @@ package main
 
 import (
 	"flag"
+	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/brunoga/go-gdrivefs/filesystem"
 	"github.com/brunoga/go-gdrivefs/gdrive"
 	"github.com/brunoga/go-gdrivefs/settings"
+	"github.com/hanwen/go-fuse/fuse/nodefs"
 )
 
 var settingsPath = flag.String("settings_path", filepath.Join(os.Getenv("HOME"),
@@ -15,13 +18,27 @@ var settingsPath = flag.String("settings_path", filepath.Join(os.Getenv("HOME"),
 func main() {
 	flag.Parse()
 
+	if len(flag.Args()) != 1 {
+		log.Fatal("Usage : ", os.Args[0], " mountpoint")
+	}
+
 	s, err := settings.New(*settingsPath)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	_, err = gdrive.NewAuth(s)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
+
+	gDriveOpts := nodefs.NewOptions()
+	gDriveNode := filesystem.NewLoggingNode(true)
+
+	state, _, err := nodefs.MountRoot(flag.Arg(0), gDriveNode, gDriveOpts)
+	if err != nil {
+		log.Fatal("Failed to mount GDriveFS : %q", err)
+	}
+
+	state.Serve()
 }

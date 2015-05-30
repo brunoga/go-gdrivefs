@@ -91,7 +91,6 @@ func (s *Settings) Save() error {
 // non-nil error in case of failure.
 func loadFile(filePath string) (map[string]string, error) {
 	settingsMap := make(map[string]string)
-
 	f, err := os.Open(filePath)
 	if os.IsNotExist(err) {
 		// File does not exist. That is fine.
