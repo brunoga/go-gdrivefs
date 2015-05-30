@@ -31,7 +31,7 @@ type Settings struct {
 // New creates a new Settings instance by trying to load the settings from the
 // given fiePath. If filePath does not exist, it returns an empty Settings
 // instance that can have settings added to it and written to the given
-// filePath when Write() is called. In case of any error, a nil Settings is
+// filePath when Save() is called. In case of any error, a nil Settings is
 // returned together with a non-nil error.
 func New(filePath string) (*Settings, error) {
 	settingsMap, err := loadFile(filePath)
@@ -62,9 +62,9 @@ func (s *Settings) Set(setting, value string) {
 	s.settingsMap[setting] = value
 }
 
-// Write writes the configured settings to the filePath given when New() was
+// Save writes the configured settings to the filePath given when New() was
 // called. It returns a non-nil error in case any error is detected.
-func (s *Settings) Write() error {
+func (s *Settings) Save() error {
 	if len(s.settingsMap) == 0 {
 		return fmt.Errorf("no settings to write")
 	}

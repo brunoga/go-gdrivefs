@@ -105,7 +105,7 @@ func TestSet(t *testing.T) {
 	}
 }
 
-func TestWrite(t *testing.T) {
+func TestSave(t *testing.T) {
 	s, err := New("./new_settings.txt")
 	if err != nil {
 		t.Fatalf("Expected no error on non-existing file. Got %q.", err)
@@ -115,14 +115,14 @@ func TestWrite(t *testing.T) {
 		t.Errorf("Expected no settings. Got %d settings.", len(s.settingsMap))
 	}
 
-	err = s.Write()
+	err = s.Save()
 	if err == nil {
-		t.Errorf("Expected error whwn writting file with no settings. Gor none.")
+		t.Errorf("Expected error whwn writting file with no settings. Got none.")
 	}
 
 	s.Set("setting1", "value1")
 
-	s.Write()
+	s.Save()
 
 	_, err = os.Stat("./new_settings.txt")
 	if err != nil {
