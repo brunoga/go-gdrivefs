@@ -27,7 +27,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_, err = gdrive.NewAuth(s)
+	a, err := gdrive.NewAuth(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = gdrive.NewHandler(a)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,7 +42,7 @@ func main() {
 
 	state, _, err := nodefs.MountRoot(flag.Arg(0), gDriveNode, gDriveOpts)
 	if err != nil {
-		log.Fatal("Failed to mount GDriveFS : %q", err)
+		log.Fatalf("Failed to mount GDriveFS : %s", err)
 	}
 
 	state.Serve()
