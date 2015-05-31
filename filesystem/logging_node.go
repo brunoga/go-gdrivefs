@@ -10,7 +10,6 @@ import (
 
 // loggingNode is a node that does nothing but log all operations called on it.
 type loggingNode struct {
-	inode     *nodefs.Inode
 	shouldLog bool
 	logPrefix string
 }
@@ -19,7 +18,6 @@ type loggingNode struct {
 // determines if it should log operations called on it or not.
 func NewLoggingNode(shouldLog bool) nodefs.Node {
 	return &loggingNode{
-		nil,
 		shouldLog,
 		"LoggingNode",
 	}
@@ -54,7 +52,6 @@ func (n *loggingNode) StatFs() *fuse.StatfsOut {
 
 func (n *loggingNode) SetInode(node *nodefs.Inode) {
 	n.log("SetInode()")
-	n.inode = node
 }
 
 func (n *loggingNode) Deletable() bool {
@@ -64,7 +61,7 @@ func (n *loggingNode) Deletable() bool {
 
 func (n *loggingNode) Inode() *nodefs.Inode {
 	n.log("Inode()")
-	return n.inode
+	return nil
 }
 
 func (n *loggingNode) OnForget() {

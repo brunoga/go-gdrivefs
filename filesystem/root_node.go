@@ -8,7 +8,7 @@ import (
 // specific methods and delegates all other calls to directoryNode (a rootNode
 // is also a directoryNode).
 //
-// TODO(bga): Actualy implement the needed methods.
+// TODO(bga): Implement relevant methods.
 type rootNode struct {
 	*directoryNode
 }

@@ -5,15 +5,17 @@ import (
 )
 
 // fileNode is Node that represents a file. it only implements methods related
-// to file manipulation, deferring all other calls to loggingNode.
+// to file manipulation, deferring all other calls to baseNode.
+//
+// TODO(bga): Implement relevant methods.
 type fileNode struct {
-	*loggingNode
+	*baseNode
 }
 
 // NewFileNode returns a new fileNode instance.
 func NewFileNode() nodefs.Node {
 	n := &fileNode{
-		NewLoggingNode(true).(*loggingNode),
+		NewBaseNode().(*baseNode),
 	}
 	n.setLogPrefix("FileNode")
 

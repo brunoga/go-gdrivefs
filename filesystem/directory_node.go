@@ -6,17 +6,17 @@ import (
 
 // directoryNode is a node that contains other nodes (i.e. a directory). It only
 // implements methods related to directory manipulation, deferring all other
-// calls to loggingNode.
+// calls to baseNode.
 //
-// TODO(bga): Actualy implement the needed methods.
+// TODO(bga): Implement relevant methods.
 type directoryNode struct {
-	*loggingNode
+	*baseNode
 }
 
 // NewDirectoryNode returns a new directoryNode instance.
 func NewDirectoryNode() nodefs.Node {
 	n := &directoryNode{
-		NewLoggingNode(true).(*loggingNode),
+		NewBaseNode().(*baseNode),
 	}
 	n.setLogPrefix("DirectoryNode")
 
