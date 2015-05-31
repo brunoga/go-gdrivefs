@@ -7,12 +7,14 @@ import (
 // fileNode is Node that represents a file. it only implements methods related
 // to file manipulation, deferring all other calls to loggingNode.
 type fileNode struct {
-	loggingNode
+	*loggingNode
 }
 
 // NewFileNode returns a new fileNode instance.
 func NewFileNode() nodefs.Node {
-	n := &fileNode{}
+	n := &fileNode{
+		NewLoggingNode(true).(*loggingNode),
+	}
 	n.setLogPrefix("FileNode")
 
 	return n

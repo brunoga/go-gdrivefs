@@ -10,12 +10,14 @@ import (
 //
 // TODO(bga): Actualy implement the needed methods.
 type directoryNode struct {
-	loggingNode
+	*loggingNode
 }
 
 // NewDirectoryNode returns a new directoryNode instance.
 func NewDirectoryNode() nodefs.Node {
-	n := &directoryNode{}
+	n := &directoryNode{
+		NewLoggingNode(true).(*loggingNode),
+	}
 	n.setLogPrefix("DirectoryNode")
 
 	return n

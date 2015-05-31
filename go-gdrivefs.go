@@ -38,7 +38,7 @@ func main() {
 	}
 
 	gDriveOpts := nodefs.NewOptions()
-	gDriveNode := filesystem.NewLoggingNode(true)
+	gDriveNode := filesystem.NewRootNode()
 
 	state, _, err := nodefs.MountRoot(flag.Arg(0), gDriveNode, gDriveOpts)
 	if err != nil {

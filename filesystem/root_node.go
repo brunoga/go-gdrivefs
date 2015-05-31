@@ -10,12 +10,14 @@ import (
 //
 // TODO(bga): Actualy implement the needed methods.
 type rootNode struct {
-	directoryNode
+	*directoryNode
 }
 
 // NewRootNode returns a new rootNode instance.
 func NewRootNode() nodefs.Node {
-	n := &rootNode{}
+	n := &rootNode{
+		NewDirectoryNode().(*directoryNode),
+	}
 	n.setLogPrefix("RootNode")
 
 	return n
