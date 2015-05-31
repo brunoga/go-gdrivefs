@@ -74,6 +74,7 @@ func getOAuthClient(s *settings.Settings) (*http.Client, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		b := new(bytes.Buffer)
 		gob.NewEncoder(base64.NewEncoder(base64.StdEncoding,
 			b)).Encode(t)

@@ -32,13 +32,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_, err = gdrive.NewHandler(a)
+	h, err := gdrive.NewHandler(a)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	gDriveOpts := nodefs.NewOptions()
-	gDriveNode := filesystem.NewRootNode()
+	gDriveNode := filesystem.NewRootNode(h)
 
 	state, _, err := nodefs.MountRoot(flag.Arg(0), gDriveNode, gDriveOpts)
 	if err != nil {
