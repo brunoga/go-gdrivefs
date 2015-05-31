@@ -8,25 +8,36 @@ import (
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 )
 
-// NewLoggingNode returns an implementation of Node that returns
-// ENOSYS for all operations and also optionally log all calls.
+// loggingNode is a node that does nothing but log all operations called on it.
+type loggingNode struct {
+	inode     *nodefs.Inode
+	shouldLog bool
+	logPrefix string
+}
+
+// NewLoggingNode returns a new loggingNodei instance. The shouldLog parameter
+// determines if it should log operations called on it or not.
 func NewLoggingNode(shouldLog bool) nodefs.Node {
 	return &loggingNode{
 		nil,
 		shouldLog,
+		"LoggingNode",
 	}
 }
 
-type loggingNode struct {
-	inode     *nodefs.Inode
-	shouldLog bool
-}
-
+// log logs the given text using the default logger.
 func (n *loggingNode) log(text string) {
 	if n.shouldLog {
-		log.Printf("%p : %s", n, text)
+		log.Printf("%s : %p : %s", n.logPrefix, n, text)
 	}
 }
+
+// setLogPrefix sets the log text prefix to logPrefix.
+func (n *loggingNode) setLogPrefix(logPrefix string) {
+	n.logPrefix = logPrefix
+}
+
+// nodefs.Node interface methods.
 
 func (n *loggingNode) OnUnmount() {
 	n.log("Unmount()")
