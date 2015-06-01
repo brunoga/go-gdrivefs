@@ -79,7 +79,8 @@ func getOAuthClient(s *settings.Settings) (*http.Client, error) {
 		gob.NewEncoder(base64.NewEncoder(base64.StdEncoding,
 			b)).Encode(t)
 
-		s.Set("oAuthClientToken", b.String())
+		// Remove line breaks in base64 string.
+		s.Set("oAuthClientToken", strings.Replace(b.String(), "\n", "", -1))
 
 		err = s.Save()
 		if err != nil {

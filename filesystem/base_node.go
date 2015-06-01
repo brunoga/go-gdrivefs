@@ -1,6 +1,9 @@
 package filesystem
 
 import (
+	"fmt"
+
+	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 
 	drive "google.golang.org/api/drive/v2"
@@ -38,7 +41,7 @@ func (n *baseNode) setRootNode(root *rootNode) {
 	n.root = root
 }
 
-// nodefs.Node Inode-related interface methods.
+// nodefs.Node generic interface methods.
 
 func (n *baseNode) SetInode(node *nodefs.Inode) {
 	n.loggingNode.SetInode(node)
@@ -50,4 +53,33 @@ func (n *baseNode) Inode() *nodefs.Inode {
 	n.loggingNode.Inode()
 
 	return n.inode
+}
+
+func (n *baseNode) GetAttr(out *fuse.Attr, file nodefs.File,
+	context *fuse.Context) (code fuse.Status) {
+	n.loggingNode.GetAttr(out, file, context)
+
+	if n.driveEntry == nil {
+		c := n.getRootNode().gdriveHandler.GetFileById("root")
+		result := <-c
+
+		err := result.GetDriveError()
+		if err != nil {
+			n.log(fmt.Sprintf(
+				"Error retrieving file data : %s", err))
+			return fuse.EIO
+		}
+
+		driveFiles := result.GetDriveFiles()
+
+		if len(driveFiles) == 0 {
+			return fuse.ENOENT
+		}
+
+		n.driveEntry = driveFiles[0]
+	}
+
+	fillAttr(n.loggingNode, n.driveEntry, out)
+
+	return fuse.OK
 }

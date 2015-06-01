@@ -11,13 +11,17 @@ type Handler struct {
 	driveService *drive.Service
 }
 
-type handlerResult struct {
+type HandlerResult struct {
 	gDriveFiles []*drive.File
 	gDriveError error
 }
 
-func (r *handlerResult) Get() ([]*drive.File, error) {
-	return r.gDriveFiles, r.gDriveError
+func (r *HandlerResult) GetDriveFiles() []*drive.File {
+	return r.gDriveFiles
+}
+
+func (r *HandlerResult) GetDriveError() error {
+	return r.gDriveError
 }
 
 func NewHandler(auth *Auth) (*Handler, error) {
@@ -32,22 +36,22 @@ func NewHandler(auth *Auth) (*Handler, error) {
 	}, nil
 }
 
-func (h *Handler) GetFileById(id string) <-chan *handlerResult {
-	c := make(chan *handlerResult)
+func (h *Handler) GetFileById(id string) <-chan *HandlerResult {
+	c := make(chan *HandlerResult)
 
 	go h.internalGetFileById(id, c)
 
 	return c
 }
 
-func (h *Handler) internalGetFileById(id string, c chan<- *handlerResult) {
+func (h *Handler) internalGetFileById(id string, c chan<- *HandlerResult) {
 	defer close(c)
 
 	filesService := drive.NewFilesService(h.driveService)
 	fileGetCall := filesService.Get(id)
 	f, err := fileGetCall.Do()
 	if err != nil {
-		c <- &handlerResult{
+		c <- &HandlerResult{
 			nil,
 			err,
 		}
@@ -55,7 +59,7 @@ func (h *Handler) internalGetFileById(id string, c chan<- *handlerResult) {
 		return
 	}
 
-	c <- &handlerResult{
+	c <- &HandlerResult{
 		[]*drive.File{
 			f,
 		},
@@ -63,15 +67,15 @@ func (h *Handler) internalGetFileById(id string, c chan<- *handlerResult) {
 	}
 }
 
-func (h *Handler) GetFileByName(name, parentId string) <-chan *handlerResult {
-	c := make(chan *handlerResult)
+func (h *Handler) GetFileByName(name, parentId string) <-chan *HandlerResult {
+	c := make(chan *HandlerResult)
 
 	go h.internalGetFileByName(name, parentId, c)
 
 	return c
 }
 
-func (h *Handler) internalGetFileByName(name, parentId string, c chan<- *handlerResult) {
+func (h *Handler) internalGetFileByName(name, parentId string, c chan<- *HandlerResult) {
 	defer close(c)
 
 	filesService := drive.NewFilesService(h.driveService)
@@ -81,7 +85,7 @@ func (h *Handler) internalGetFileByName(name, parentId string, c chan<- *handler
 		parentId, name))
 	fileList, err := fileListCall.Do()
 	if err != nil {
-		c <- &handlerResult{
+		c <- &HandlerResult{
 			nil,
 			err,
 		}
@@ -89,21 +93,21 @@ func (h *Handler) internalGetFileByName(name, parentId string, c chan<- *handler
 		return
 	}
 
-	c <- &handlerResult{
+	c <- &HandlerResult{
 		fileList.Items,
 		nil,
 	}
 }
 
-func (h *Handler) GetFileList(parentId string) <-chan *handlerResult {
-	c := make(chan *handlerResult)
+func (h *Handler) GetFileList(parentId string) <-chan *HandlerResult {
+	c := make(chan *HandlerResult)
 
 	go h.internalGetFileList(parentId, c)
 
 	return c
 }
 
-func (h *Handler) internalGetFileList(parentId string, c chan<- *handlerResult) {
+func (h *Handler) internalGetFileList(parentId string, c chan<- *HandlerResult) {
 	defer close(c)
 
 	filesService := drive.NewFilesService(h.driveService)
@@ -112,7 +116,7 @@ func (h *Handler) internalGetFileList(parentId string, c chan<- *handlerResult) 
 	fileListCall.Q(fmt.Sprintf("'%s' in parents", parentId))
 	fileList, err := fileListCall.Do()
 	if err != nil {
-		c <- &handlerResult{
+		c <- &HandlerResult{
 			nil,
 			err,
 		}
@@ -120,7 +124,7 @@ func (h *Handler) internalGetFileList(parentId string, c chan<- *handlerResult) 
 		return
 	}
 
-	c <- &handlerResult{
+	c <- &HandlerResult{
 		fileList.Items,
 		nil,
 	}

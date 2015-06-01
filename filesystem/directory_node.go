@@ -2,10 +2,11 @@ package filesystem
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
+
+	drive "google.golang.org/api/drive/v2"
 )
 
 // directoryNode is a node that contains other nodes (i.e. a directory). It only
@@ -14,12 +15,15 @@ import (
 //
 // TODO(bga): Implement relevant methods.
 type directoryNode struct {
+	driveFiles []*drive.File
+
 	*baseNode
 }
 
 // NewDirectoryNode returns a new directoryNode instance.
 func NewDirectoryNode() nodefs.Node {
 	n := &directoryNode{
+		nil,
 		NewBaseNode().(*baseNode),
 	}
 	n.setLogPrefix("DirectoryNode")
@@ -49,7 +53,7 @@ func (n *directoryNode) Lookup(out *fuse.Attr, name string,
 	c := n.getRootNode().gdriveHandler.GetFileByName(name, id)
 	result := <-c
 
-	items, err := result.Get()
+	err := result.GetDriveError()
 	if err != nil {
 		// Could not retrieve data for file.
 		n.log(fmt.Sprintf("Error retrieving file data : %s", err))
@@ -57,58 +61,72 @@ func (n *directoryNode) Lookup(out *fuse.Attr, name string,
 		return nil, fuse.EIO
 	}
 
-	if len(items) == 0 {
+	driveFiles := result.GetDriveFiles()
+
+	if len(driveFiles) == 0 {
 		// No file found.
 		return nil, fuse.ENOENT
 	}
 
-	n.log("HERE")
+	driveFile := driveFiles[0]
 
-	item := items[0]
+	isDir := fillAttr(n.loggingNode, driveFile, out)
 
-	// Set file size.
-	out.Size = uint64(item.FileSize)
-
-	// Set crested and modified dates.
-	createdDate, err := time.Parse(time.RFC3339, item.CreatedDate)
-	if err == nil {
-		out.Ctime = uint64(createdDate.Unix())
-	} else {
-		n.log(fmt.Sprintf("Error parsing date : %s", err))
-	}
-
-	modifiedDate, err := time.Parse(time.RFC3339, item.ModifiedDate)
-	if err == nil {
-		out.Mtime = uint64(modifiedDate.Unix())
-	} else {
-		n.log(fmt.Sprintf("Error parsing date : %s", err))
-	}
-
-	// Set up file/directory entry.
-	var isDir bool
 	var newNode nodefs.Node
-	if item.MimeType == "application/vnd.google-apps.folder" {
-		// This is a directory.
-		out.Mode = fuse.S_IFDIR | 0755
-
+	if isDir {
+		// Setup directory node.
 		newNode = NewDirectoryNode()
-
-		isDir = true
+		newNode.(*directoryNode).driveEntry = result.GetDriveFiles()[0]
+		newNode.(*directoryNode).setRootNode(n.getRootNode())
 	} else {
-		// This is a file.
-		out.Mode = fuse.S_IFREG | 0644
-
+		// Setup file node.
 		newNode = NewFileNode()
-
-		isDir = false
+		newNode.(*fileNode).driveEntry = result.GetDriveFiles()[0]
+		newNode.(*fileNode).setRootNode(n.getRootNode())
 	}
 
-	// Set data and rootnode for entry.
-	newNode.(*baseNode).driveEntry = item
-	newNode.(*baseNode).setRootNode(n.getRootNode())
-
-	// Allocatea new Inode.
+	// Allocate a new Inode.
 	newInode := n.Inode().NewChild(name, isDir, newNode)
 
 	return newInode, fuse.OK
+}
+
+func (n *directoryNode) OpenDir(
+	context *fuse.Context) ([]fuse.DirEntry, fuse.Status) {
+	n.baseNode.OpenDir(context)
+
+	if n.driveFiles == nil {
+		c := n.getRootNode().gdriveHandler.GetFileList(n.driveEntry.Id)
+		result := <-c
+
+		err := result.GetDriveError()
+		if err != nil {
+			n.log(fmt.Sprintf("Error retrieving file data : %s", err))
+			return nil, fuse.EIO
+		}
+
+		n.driveFiles = result.GetDriveFiles()
+	}
+
+	dirEntries := make([]fuse.DirEntry, 0, len(n.driveFiles))
+	for _, driveFile := range n.driveFiles {
+		if driveFile.Labels.Trashed {
+			// Ignore items in the trash.
+			continue
+		}
+
+		var mode uint32
+		if driveFile.MimeType == "application/vnd.google-apps.folder" {
+			mode = fuse.S_IFDIR | 0755
+		} else {
+			mode = fuse.S_IFREG | 0644
+		}
+
+		dirEntries = append(dirEntries, fuse.DirEntry{
+			Name: driveFile.Title,
+			Mode: mode,
+		})
+	}
+
+	return dirEntries, fuse.OK
 }
