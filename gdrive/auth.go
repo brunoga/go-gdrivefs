@@ -79,8 +79,7 @@ func getOAuthClient(s *settings.Settings) (*http.Client, error) {
 		gob.NewEncoder(base64.NewEncoder(base64.StdEncoding,
 			b)).Encode(t)
 
-		// Remove line breaks in base64 string.
-		s.Set("oAuthClientToken", strings.Replace(b.String(), "\n", "", -1))
+		s.Set("oAuthClientToken", b.String())
 
 		err = s.Save()
 		if err != nil {
@@ -88,7 +87,7 @@ func getOAuthClient(s *settings.Settings) (*http.Client, error) {
 				"in-memory.", err)
 		}
 	} else {
-		t := new(oauth2.Token)
+		t = new(oauth2.Token)
 		err = gob.NewDecoder(base64.NewDecoder(base64.StdEncoding,
 			strings.NewReader(oAuthClientToken))).Decode(t)
 		if err != nil {
