@@ -50,10 +50,7 @@ func (n *directoryNode) Lookup(out *fuse.Attr, name string,
 
 	// Call handler to obtain information about the required file in this
 	// directory.
-	c := n.getRootNode().gdriveHandler.GetFileByName(name, id)
-	result := <-c
-
-	err := result.GetDriveError()
+	driveFile, err := n.getRootNode().gdriveHandler.GetFileByName(name, id)
 	if err != nil {
 		// Could not retrieve data for file.
 		n.log(fmt.Sprintf("Error retrieving file data : %s", err))
@@ -61,14 +58,10 @@ func (n *directoryNode) Lookup(out *fuse.Attr, name string,
 		return nil, fuse.EIO
 	}
 
-	driveFiles := result.GetDriveFiles()
-
-	if len(driveFiles) == 0 {
+	if driveFile == nil {
 		// No file found.
 		return nil, fuse.ENOENT
 	}
-
-	driveFile := driveFiles[0]
 
 	isDir := fillAttr(n.loggingNode, driveFile, out)
 
@@ -76,12 +69,12 @@ func (n *directoryNode) Lookup(out *fuse.Attr, name string,
 	if isDir {
 		// Setup directory node.
 		newNode = NewDirectoryNode()
-		newNode.(*directoryNode).driveEntry = result.GetDriveFiles()[0]
+		newNode.(*directoryNode).driveEntry = driveFile
 		newNode.(*directoryNode).setRootNode(n.getRootNode())
 	} else {
 		// Setup file node.
 		newNode = NewFileNode()
-		newNode.(*fileNode).driveEntry = result.GetDriveFiles()[0]
+		newNode.(*fileNode).driveEntry = driveFile
 		newNode.(*fileNode).setRootNode(n.getRootNode())
 	}
 
@@ -96,16 +89,15 @@ func (n *directoryNode) OpenDir(
 	n.baseNode.OpenDir(context)
 
 	if n.driveFiles == nil {
-		c := n.getRootNode().gdriveHandler.GetFileList(n.driveEntry.Id)
-		result := <-c
-
-		err := result.GetDriveError()
+		driveFiles, err := n.getRootNode().gdriveHandler.GetFileList(
+			n.driveEntry.Id)
 		if err != nil {
-			n.log(fmt.Sprintf("Error retrieving file data : %s", err))
+			n.log(fmt.Sprintf("Error retrieving file list : %s",
+				err))
 			return nil, fuse.EIO
 		}
 
-		n.driveFiles = result.GetDriveFiles()
+		n.driveFiles = driveFiles
 	}
 
 	dirEntries := make([]fuse.DirEntry, 0, len(n.driveFiles))

@@ -60,23 +60,19 @@ func (n *baseNode) GetAttr(out *fuse.Attr, file nodefs.File,
 	n.loggingNode.GetAttr(out, file, context)
 
 	if n.driveEntry == nil {
-		c := n.getRootNode().gdriveHandler.GetFileById("root")
-		result := <-c
-
-		err := result.GetDriveError()
+		driveFile, err := n.getRootNode().gdriveHandler.GetFileById(
+			"root")
 		if err != nil {
 			n.log(fmt.Sprintf(
 				"Error retrieving file data : %s", err))
 			return fuse.EIO
 		}
 
-		driveFiles := result.GetDriveFiles()
-
-		if len(driveFiles) == 0 {
+		if driveFile == nil {
 			return fuse.ENOENT
 		}
 
-		n.driveEntry = driveFiles[0]
+		n.driveEntry = driveFile
 	}
 
 	fillAttr(n.loggingNode, n.driveEntry, out)
