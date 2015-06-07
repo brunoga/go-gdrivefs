@@ -2,6 +2,10 @@ package gdrive
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+
+	"github.com/hanwen/go-fuse/fuse"
 
 	drive "google.golang.org/api/drive/v2"
 )
@@ -69,4 +73,48 @@ func (h *Handler) GetFileList(parentId string) ([]*drive.File, error) {
 	}
 
 	return fileList.Items, nil
+}
+
+func (h *Handler) ReadFile(driveFile *drive.File,
+	dest []byte, offset int64) (fuse.ReadResult, fuse.Status) {
+	if len(driveFile.DownloadUrl) == 0 {
+		return nil, fuse.ENODATA
+	}
+
+	c := h.auth.Client()
+
+	req, err := http.NewRequest("GET", driveFile.DownloadUrl, nil)
+	if err != nil {
+		return nil, fuse.EIO
+	}
+
+	req.Header.Add("Range", fmt.Sprintf("bytes=%d-%d", offset,
+		offset+int64(len(dest))))
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return nil, fuse.EIO
+	}
+	defer resp.Body.Close()
+
+	tRead := 0
+	for {
+		nRead, err := resp.Body.Read(dest[tRead:])
+
+		tRead += nRead
+
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return nil, fuse.EIO
+		}
+
+		if tRead == len(dest) {
+			break
+		}
+	}
+
+	return fuse.ReadResultData(dest[:tRead]), fuse.OK
 }
