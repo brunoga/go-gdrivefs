@@ -29,6 +29,11 @@ func NewFileNode() nodefs.Node {
 
 func (n *fileNode) Open(flags uint32,
 	context *fuse.Context) (file nodefs.File, code fuse.Status) {
+	// TODO(bga): This method should most likelly move to base_node.go as
+	// Open() can be called on directories. OTOH, it might be better to have
+	// a separate Open() implementation in this case. It will all depend on
+	// the amount of code that could be resused.
+
 	// Currrently we have a read-only file system.
 	if (flags & (uint32(os.O_WRONLY | os.O_RDWR | os.O_TRUNC))) != 0 {
 		return nil, fuse.EROFS
