@@ -41,7 +41,7 @@ func (n *fileNode) Open(flags uint32,
 		return nil, fuse.EROFS
 	}
 
-	newFile := NewLoggingFile(true)
+	newFile := NewBaseFile(true)
 
 	// Currently we do not return a proper file. This is ok and we can
 	// handle everything at the node level.
