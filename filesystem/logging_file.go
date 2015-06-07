@@ -14,9 +14,9 @@ type loggingFile struct {
 	logPrefix string
 }
 
-// NewLoggingFile returns a new loggingFile instance. The shouldLog parameter
+// newLoggingFile returns a new loggingFile instance. The shouldLog parameter
 // determines if it should log operations called on it or not.
-func NewLoggingFile(shouldLog bool) nodefs.File {
+func newLoggingFile(shouldLog bool) nodefs.File {
 	return &loggingFile{
 		shouldLog,
 		"LoggingFile",
