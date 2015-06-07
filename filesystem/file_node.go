@@ -1,6 +1,9 @@
 package filesystem
 
 import (
+	"os"
+
+	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 )
 
@@ -20,4 +23,20 @@ func NewFileNode() nodefs.Node {
 	n.setLogPrefix("FileNode")
 
 	return n
+}
+
+// nodefs.Node file-related interface methods.
+
+func (n *fileNode) Open(flags uint32,
+	context *fuse.Context) (file nodefs.File, code fuse.Status) {
+	// Currrently we have a read-only file system.
+	if (flags & (uint32(os.O_WRONLY | os.O_RDWR | os.O_TRUNC))) != 0 {
+		return nil, fuse.EROFS
+	}
+
+	// Currently we do not return a proper file. This is ok and we can
+	// handle everything at the node level.
+	//
+	// TODO(bga): Consider creating a proper file representation.
+	return nil, fuse.OK
 }
