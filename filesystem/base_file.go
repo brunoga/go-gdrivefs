@@ -13,10 +13,13 @@ type baseFile struct {
 
 // NewBaseFile returns a new baseFile instance.
 func NewBaseFile(shouldLog bool) nodefs.File {
-	return &baseFile{
+	f := &baseFile{
 		nil,
 		NewLoggingFile(true).(*loggingFile),
 	}
+	f.setLogPrefix("BaseFile")
+
+	return f
 }
 
 // nodefs.File generic interface methods.
