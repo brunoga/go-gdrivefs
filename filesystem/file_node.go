@@ -34,6 +34,8 @@ func (n *fileNode) Open(flags uint32,
 	// a separate Open() implementation in this case. It will all depend on
 	// the amount of code that could be resused.
 
+	n.baseNode.Open(flags, context)
+
 	// Currrently we have a read-only file system.
 	if (flags & (uint32(os.O_WRONLY | os.O_RDWR | os.O_TRUNC))) != 0 {
 		return nil, fuse.EROFS
