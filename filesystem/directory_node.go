@@ -20,11 +20,11 @@ type directoryNode struct {
 	*baseNode
 }
 
-// NewDirectoryNode returns a new directoryNode instance.
-func NewDirectoryNode() nodefs.Node {
+// newDirectoryNode returns a new directoryNode instance.
+func newDirectoryNode() nodefs.Node {
 	n := &directoryNode{
 		nil,
-		NewBaseNode().(*baseNode),
+		newBaseNode().(*baseNode),
 	}
 	n.setLogPrefix("DirectoryNode")
 
@@ -71,12 +71,12 @@ func (n *directoryNode) Lookup(out *fuse.Attr, name string,
 	var newNode nodefs.Node
 	if isDir {
 		// Setup directory node.
-		newNode = NewDirectoryNode()
+		newNode = newDirectoryNode()
 		newNode.(*directoryNode).driveEntry = driveFile
 		newNode.(*directoryNode).setRootNode(n.getRootNode())
 	} else {
 		// Setup file node.
-		newNode = NewFileNode()
+		newNode = newFileNode()
 		newNode.(*fileNode).driveEntry = driveFile
 		newNode.(*fileNode).setRootNode(n.getRootNode())
 	}

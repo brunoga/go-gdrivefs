@@ -21,7 +21,7 @@ type rootNode struct {
 func NewRootNode(gdriveHandler *gdrive.Handler) nodefs.Node {
 	n := &rootNode{
 		gdriveHandler,
-		NewDirectoryNode().(*directoryNode),
+		newDirectoryNode().(*directoryNode),
 	}
 	n.setLogPrefix("RootNode")
 	n.setRootNode(n)

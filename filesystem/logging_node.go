@@ -14,9 +14,9 @@ type loggingNode struct {
 	logPrefix string
 }
 
-// NewLoggingNode returns a new loggingNodei instance. The shouldLog parameter
+// newLoggingNode returns a new loggingNodei instance. The shouldLog parameter
 // determines if it should log operations called on it or not.
-func NewLoggingNode(shouldLog bool) nodefs.Node {
+func newLoggingNode(shouldLog bool) nodefs.Node {
 	return &loggingNode{
 		shouldLog,
 		"LoggingNode",

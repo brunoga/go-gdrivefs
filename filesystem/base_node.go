@@ -20,13 +20,13 @@ type baseNode struct {
 	*loggingNode
 }
 
-// NewBaseNode returns a new baseNode instance.
-func NewBaseNode() nodefs.Node {
+// newBaseNode returns a new baseNode instance.
+func newBaseNode() nodefs.Node {
 	n := &baseNode{
 		nil,
 		nil,
 		nil,
-		NewLoggingNode(true).(*loggingNode),
+		newLoggingNode(true).(*loggingNode),
 	}
 	n.setLogPrefix("BaseNode")
 

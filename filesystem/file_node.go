@@ -15,10 +15,10 @@ type fileNode struct {
 	*baseNode
 }
 
-// NewFileNode returns a new fileNode instance.
-func NewFileNode() nodefs.Node {
+// newFileNode returns a new fileNode instance.
+func newFileNode() nodefs.Node {
 	n := &fileNode{
-		NewBaseNode().(*baseNode),
+		newBaseNode().(*baseNode),
 	}
 	n.setLogPrefix("FileNode")
 
