@@ -31,6 +31,17 @@ func NewDirectoryNode() nodefs.Node {
 	return n
 }
 
+// getId returns the GDrive Id of the current node.
+func (n *directoryNode) getId() string {
+	if n.driveEntry == nil {
+		// We have no information about ourselves, so we must be the
+		// root node.
+		return "root"
+	}
+
+	return n.driveEntry.Id
+}
+
 // nodefs.Node directory-related interface methods.
 
 func (n *directoryNode) Lookup(out *fuse.Attr, name string,
@@ -38,15 +49,7 @@ func (n *directoryNode) Lookup(out *fuse.Attr, name string,
 	n.baseNode.Lookup(out, name, context)
 
 	// Figure out our own directory id.
-	var id string
-	if n.driveEntry == nil {
-		// We have no information about ourselves, so we must be the
-		// root node.
-		id = "root"
-	} else {
-		// We have information about ourselves. Use it.
-		id = n.driveEntry.Id
-	}
+	id := n.getId()
 
 	// Call handler to obtain information about the required file in this
 	// directory.
@@ -89,8 +92,10 @@ func (n *directoryNode) OpenDir(
 	n.baseNode.OpenDir(context)
 
 	if n.driveFiles == nil {
-		driveFiles, err := n.getRootNode().gdriveHandler.GetFileList(
-			n.driveEntry.Id)
+		// Figure out our own directory id.
+		id := n.getId()
+
+		driveFiles, err := n.getRootNode().gdriveHandler.GetFileList(id)
 		if err != nil {
 			n.log(fmt.Sprintf("Error retrieving file list : %s",
 				err))
