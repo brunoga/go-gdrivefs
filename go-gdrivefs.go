@@ -9,6 +9,7 @@ import (
 	"github.com/brunoga/go-gdrivefs/filesystem"
 	"github.com/brunoga/go-gdrivefs/gdrive"
 	"github.com/brunoga/go-gdrivefs/settings"
+	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 )
 
@@ -37,10 +38,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	gDriveOpts := nodefs.NewOptions()
+	gDriveNodeOpts := nodefs.NewOptions()
+
+	gDriveMountOpts := &fuse.MountOptions{
+		Options: []string{
+			"max_read=131072",
+		},
+		MaxWrite: 131072,
+		Name:     "GDrive",
+	}
+
 	gDriveNode := filesystem.NewRootNode(h)
 
-	state, _, err := nodefs.MountRoot(flag.Arg(0), gDriveNode, gDriveOpts)
+	conn := nodefs.NewFileSystemConnector(gDriveNode, gDriveNodeOpts)
+
+	state, err := fuse.NewServer(conn.RawFS(), flag.Arg(0), gDriveMountOpts)
 	if err != nil {
 		log.Fatalf("Failed to mount GDriveFS : %s", err)
 	}
